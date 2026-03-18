@@ -1,7 +1,9 @@
 # RB-RP2354A Quadcopter Flight Controller
 
-> **A complete, Betaflight-class open-source flight stack built on the Raspberry Pi RP2354A.**  
+> **A complete, Betaflight-class flight stack built on the Raspberry Pi RP2354A.**  
 > Supports 65 mm coreless TinyWhoops and 2″–5″ BLDC racing quads from the same hardware.
+<img width="325" height="357" alt="image" src="https://github.com/user-attachments/assets/1408a3b4-e806-4ec4-a210-d92d4da5475f" />
+<img width="325" height="357" alt="image" src="https://github.com/user-attachments/assets/bc21e870-ce20-4e82-9cd9-c08f8b35d245" />
 
 ---
 
@@ -51,18 +53,18 @@ The RP2354A integrates **two independent Cortex-M33 processors** that share syst
 │         CORE 0  (150 MHz)       │   │         CORE 1  (150 MHz)       │
 │   Hard real-time flight loop    │   │   I/O & analysis                │
 ├─────────────────────────────────┤   ├─────────────────────────────────┤
-│ BMI088 DRDY ISR  @ 2 kHz       │   │ ELRS / CRSF parser  (async)    │
-│  → RPM notch filter bank       │   │ CMSIS-DSP FFT  @ ~8 Hz         │
-│  → Biquad LPF  (3 axes)        │   │  → update dynamic notch freq   │
-│  → Madgwick AHRS               │   │                                 │
-│ 1 kHz control loop:            │   │  Shared via lock-free           │
-│  → Altitude estimation         │   │  volatile atomic copy           │
-│  → Flight-mode logic           │   │                                 │
-│  → Dual PID  (rate + angle)    │   │                                 │
-│  → Quad-X motor mixer          │   │                                 │
-│  → DShot600 PIO / brushed PWM  │   │                                 │
-│  → Blackbox write  *(optional)*  │   │                                 │
-│  → USB telemetry @ 100 Hz      │   │                                 │
+│ BMI088 DRDY ISR  @ 2 kHz        │   │ ELRS / CRSF parser  (async)     │
+│  → RPM notch filter bank        │   │ CMSIS-DSP FFT  @ ~8 Hz          │
+│  → Biquad LPF  (3 axes)         │   │  → update dynamic notch freq    │
+│  → Madgwick AHRS                │   │                                 │
+│ 1 kHz control loop:             │   │  Shared via lock-free           │
+│  → Altitude estimation          │   │  volatile atomic copy           │
+│  → Flight-mode logic            │   │                                 │
+│  → Dual PID  (rate + angle)     │   │                                 │
+│  → Quad-X motor mixer           │   │                                 │
+│  → DShot600 PIO / brushed PWM   │   │                                 │
+│  → Blackbox write  *(optional)* │   │                                 │
+│  → USB telemetry @ 100 Hz       │   │                                 │
 └─────────────────────────────────┘   └─────────────────────────────────┘
               ↑ shared SRAM  (atomic snapshot on read) ↑
 ```
@@ -104,13 +106,13 @@ At each IMU sample (2 000 Hz):
 
 ┌──────────────┐    ┌──────────────────────────────────────────────────┐
 │  BMI088      │    │  Madgwick update step                            │
-│  gyro (rad/s)├───►│  1. Rate integration:  q̇ = 0.5 · q ⊗ ωgyro    │
+│  gyro (rad/s)├───►│  1. Rate integration:  q̇ = 0.5 · q ⊗ ωgyro       │
 │  accel (g)   ├───►│  2. Gradient descent:                            │
-└──────────────┘    │       f  = q ⊗ g_ref ⊗ q* − g_meas             │
+└──────────────┘    │       f  = q ⊗ g_ref ⊗ q* − g_meas               │
                     │       ∇f = J^T · f                               │
-                    │       q̇_err = β · ∇f / |∇f|                    │
-                    │  3. Combine:   q̇_total = q̇ − q̇_err            │
-                    │  4. Integrate: q += q̇_total / fs                │
+                    │       q̇_err = β · ∇f / |∇f|                      │
+                    │  3. Combine:   q̇_total = q̇ − q̇_err               │
+                    │  4. Integrate: q += q̇_total / fs                 │
                     │  5. Normalise: q /= |q|                          │
                     │  6. Extract roll, pitch, yaw  (Euler output)     │
                     └──────────────────────────────────────────────────┘
